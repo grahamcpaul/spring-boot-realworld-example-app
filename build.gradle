@@ -15,10 +15,7 @@ java {
 
 spotless {
     java {
-        target project.fileTree(project.rootDir) {
-            include '**/*.java'
-            exclude 'build/generated/**/*.*', 'build/generated-examples/**/*.*'
-        }
+        target 'src/**/*.java'
         googleJavaFormat()
     }
 }
