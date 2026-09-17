@@ -26,7 +26,7 @@ public class MeDatafetcher {
 
   @DgsData(parentType = DgsConstants.QUERY_TYPE, field = QUERY.Me)
   public DataFetcherResult<User> getMe(
-      @RequestHeader(value = "Authorization") String authorization,
+      @RequestHeader(value = "Authorization", required = false) String authorization,
       DataFetchingEnvironment dataFetchingEnvironment) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication instanceof AnonymousAuthenticationToken

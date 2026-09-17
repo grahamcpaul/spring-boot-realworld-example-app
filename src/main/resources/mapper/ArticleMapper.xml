@@ -25,7 +25,8 @@
               <if test="article.title != ''">title = #{article.title},</if>
               <if test="article.title != ''">slug = #{article.slug},</if>
               <if test="article.description != ''">description = #{article.description},</if>
-              <if test="article.body != ''">body = #{article.body}</if>
+              <if test="article.body != ''">body = #{article.body},</if>
+              updated_at = #{article.updatedAt}
           </set>
         where id = #{article.id}
     </update>

@@ -3,6 +3,7 @@ package io.spring.api.security;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -109,7 +110,7 @@ public class SecurityRulesIntegrationTest {
   }
 
   @Test
-  public void authenticated_article_lifecycle() {
+  public void authenticated_article_lifecycle() throws InterruptedException {
     String seed = UUID.randomUUID().toString().substring(0, 8);
     String token =
         given()
@@ -133,8 +134,16 @@ public class SecurityRulesIntegrationTest {
             .extract()
             .path("article.slug");
 
-    given().get("/articles/" + slug).then().statusCode(200).body("article.slug", equalTo(slug));
+    String createdAt =
+        given()
+            .get("/articles/" + slug)
+            .then()
+            .statusCode(200)
+            .body("article.slug", equalTo(slug))
+            .extract()
+            .path("article.updatedAt");
 
+    Thread.sleep(20);
     given()
         .header("Authorization", "Token " + token)
         .contentType(ContentType.JSON)
@@ -142,7 +151,15 @@ public class SecurityRulesIntegrationTest {
         .put("/articles/" + slug)
         .then()
         .statusCode(200)
-        .body("article.body", equalTo("updated body"));
+        .body("article.body", equalTo("updated body"))
+        .body("article.createdAt", equalTo(createdAt))
+        .body("article.updatedAt", not(equalTo(createdAt)));
+
+    given()
+        .get("/articles/" + slug)
+        .then()
+        .statusCode(200)
+        .body("article.updatedAt", not(equalTo(createdAt)));
 
     given()
         .header("Authorization", "Token " + token)
@@ -202,6 +219,15 @@ public class SecurityRulesIntegrationTest {
         .then()
         .statusCode(200)
         .body("data.articles", notNullValue())
+        .body("errors", nullValue());
+
+    given()
+        .contentType(ContentType.JSON)
+        .body(graphql("{ me { username } }"))
+        .post("/graphql")
+        .then()
+        .statusCode(200)
+        .body("data.me", nullValue())
         .body("errors", nullValue());
 
     String seed = UUID.randomUUID().toString().substring(0, 8);
